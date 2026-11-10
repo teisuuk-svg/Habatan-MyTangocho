@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#1e5a52" />
+    <meta
+      name="description"
+      content="4択で学べる、個人の学習履歴に合わせた英単語練習アプリ"
+    />
+    <title>はばたんMy単語帳</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">本文へ移動</a>
+
+    <header class="site-header">
+      <div class="header-inner">
+        <button class="brand" id="brand-button" type="button" aria-label="学習設定へ戻る">
+          <span class="brand-mark" aria-hidden="true">Aa</span>
+          <span>
+            <strong>はばたんMy単語帳</strong>
+          </span>
+        </button>
+        <nav aria-label="メインメニュー">
+          <button class="nav-button is-active" id="nav-study" type="button">学習</button>
+          <button class="nav-button" id="nav-stats" type="button">成績</button>
+        </nav>
+      </div>
+    </header>
+
+    <div class="app-message" id="app-message" role="status" aria-live="polite" hidden></div>
+
+    <main id="main-content">
+      <section class="view setup-view" id="setup-view" aria-labelledby="setup-title">
+        <div class="intro-row">
+          <div>
+            <p class="eyebrow">学習設定</p>
+            <h1 id="setup-title">今日の練習をはじめる</h1>
+            <p class="lead">出題方向と範囲を選ぶと、履歴に合わせて問題が選ばれます。</p>
+          </div>
+          <div class="source-summary" aria-label="単語データ概要">
+            <strong id="total-word-count">822</strong>
+            <span>収録語</span>
+          </div>
+        </div>
+
+        <form id="settings-form" class="settings-layout">
+          <div class="settings-main">
+            <fieldset class="setting-section">
+              <legend><span class="section-number">1</span>出題モード</legend>
+              <div class="mode-grid">
+                <label class="choice-card">
+                  <input type="radio" name="mode" value="enToJa" checked />
+                  <span class="choice-card-body">
+                    <span class="mode-sample"><b>English</b><span aria-hidden="true">→</span><b>日本語</b></span>
+                    <span class="choice-title">英単語から意味を選ぶ</span>
+                    <span class="choice-description">英単語を見て、日本語の意味を答えます。</span>
+                  </span>
+                </label>
+                <label class="choice-card">
+                  <input type="radio" name="mode" value="jaToEn" />
+                  <span class="choice-card-body">
+                    <span class="mode-sample"><b>日本語</b><span aria-hidden="true">→</span><b>English</b></span>
+                    <span class="choice-title">意味から英単語を選ぶ</span>
+                    <span class="choice-description">日本語の意味を見て、英単語を答えます。</span>
+                  </span>
+                </label>
+              </div>
+            </fieldset>
+
+            <fieldset class="setting-section">
+              <legend><span class="section-number">2</span>品詞</legend>
+              <div class="section-heading-row">
+                <p>複数選択できます。何も選ばない場合は全品詞が対象です。</p>
+                <button class="text-button" id="clear-parts" type="button">全品詞に戻す</button>
+              </div>
+              <div class="part-grid" id="part-grid"></div>
+            </fieldset>
+
+            <fieldset class="setting-section compact-section">
+              <legend><span class="section-number">3</span>☆の絞り込み</legend>
+              <label class="switch-row">
+                <span>
+                  <strong>☆付き単語のみ</strong>
+                  <small>元データで☆が付いている単語に絞ります。</small>
+                </span>
+                <span class="switch-control">
+                  <input id="starred-only" type="checkbox" />
+                  <span aria-hidden="true"></span>
+                </span>
+              </label>
+            </fieldset>
+          </div>
+
+          <aside class="start-panel" aria-label="出題範囲の確認">
+            <p class="panel-label">今回の出題範囲</p>
+            <div class="target-count">
+              <strong id="eligible-count">0</strong>
+              <span>問の候補</span>
+            </div>
+            <dl class="selection-summary">
+              <div><dt>モード</dt><dd id="summary-mode">英単語 → 日本語</dd></div>
+              <div><dt>品詞</dt><dd id="summary-parts">全品詞</dd></div>
+              <div><dt>☆</dt><dd id="summary-star">すべて</dd></div>
+            </dl>
+            <p class="range-note" id="range-note">問題数に上限はありません。</p>
+            <button class="primary-button start-button" id="start-button" type="submit">
+              学習をはじめる
+            </button>
+            <p class="keyboard-note">回答は数字キー 1〜4 でも選べます。</p>
+          </aside>
+        </form>
+      </section>
+
+      <section class="view quiz-view" id="quiz-view" aria-labelledby="quiz-heading" hidden>
+        <div class="quiz-topbar">
+          <button class="back-button" id="finish-session" type="button">学習を終了</button>
+          <div class="session-stats" aria-label="今回の成績">
+            <div><span>回答</span><strong id="session-attempts">0</strong></div>
+            <div><span>正解</span><strong id="session-correct">0</strong></div>
+            <div><span>不正解</span><strong id="session-incorrect">0</strong></div>
+            <div><span>正答率</span><strong id="session-accuracy">0%</strong></div>
+          </div>
+        </div>
+
+        <div class="quiz-shell">
+          <div class="question-area">
+            <p class="question-kicker" id="question-kicker">英単語の意味を選んでください</p>
+            <h1 id="quiz-heading" class="question-text"></h1>
+            <div class="option-list" id="option-list" role="group" aria-label="選択肢"></div>
+          </div>
+
+          <div class="feedback" id="feedback" role="status" aria-live="assertive" hidden>
+            <div class="feedback-heading">
+              <span class="feedback-icon" id="feedback-icon" aria-hidden="true"></span>
+              <div>
+                <strong id="feedback-title"></strong>
+                <p id="feedback-answer"></p>
+              </div>
+            </div>
+            <div class="example-block" id="example-block" hidden>
+              <span>用例</span>
+              <p id="example-text"></p>
+            </div>
+            <button class="primary-button next-button" id="next-button" type="button">次の問題へ</button>
+            <p class="keyboard-note">Enter、Space、N キーでも次へ進めます。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="view stats-view" id="stats-view" aria-labelledby="stats-title" hidden>
+        <div class="stats-header">
+          <div>
+            <p class="eyebrow">学習成績</p>
+            <h1 id="stats-title">これまでの記録</h1>
+          </div>
+          <div class="mode-tabs" role="tablist" aria-label="成績のモード">
+            <button type="button" role="tab" aria-selected="true" data-stats-mode="enToJa">英 → 日</button>
+            <button type="button" role="tab" aria-selected="false" data-stats-mode="jaToEn">日 → 英</button>
+          </div>
+        </div>
+
+        <div class="stats-cards" aria-label="累計成績">
+          <div><span>累計回答数</span><strong id="total-attempts">0</strong></div>
+          <div><span>正解</span><strong id="total-correct">0</strong></div>
+          <div><span>不正解</span><strong id="total-incorrect">0</strong></div>
+          <div><span>正答率</span><strong id="total-accuracy">0%</strong></div>
+          <div><span>学習した単語</span><strong id="studied-words">0</strong></div>
+        </div>
+
+        <section class="stats-section" aria-labelledby="weak-title">
+          <div class="section-title-row">
+            <div>
+              <h2 id="weak-title">苦手単語</h2>
+              <p>正答率、回答回数、直近の結果から優先度が高い単語です。</p>
+            </div>
+          </div>
+          <div class="weak-list" id="weak-list"></div>
+        </section>
+
+        <section class="stats-section" aria-labelledby="word-stats-title">
+          <div class="section-title-row table-tools-row">
+            <div>
+              <h2 id="word-stats-title">単語別の成績</h2>
+              <p>収録語を検索し、単語ごとの記録を確認できます。</p>
+            </div>
+            <label class="search-field">
+              <span class="visually-hidden">単語または意味で検索</span>
+              <input id="stats-search" type="search" placeholder="単語・意味を検索" />
+            </label>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">単語</th>
+                  <th scope="col">意味</th>
+                  <th scope="col">品詞</th>
+                  <th scope="col">回答</th>
+                  <th scope="col">正解</th>
+                  <th scope="col">正答率</th>
+                  <th scope="col">直近</th>
+                </tr>
+              </thead>
+              <tbody id="word-stats-body"></tbody>
+            </table>
+          </div>
+          <div class="pagination">
+            <button class="secondary-button" id="previous-page" type="button">前へ</button>
+            <span id="page-status">1 / 1</span>
+            <button class="secondary-button" id="next-page" type="button">次へ</button>
+          </div>
+        </section>
+
+        <section class="stats-section data-section" aria-labelledby="data-title">
+          <div>
+            <h2 id="data-title">履歴データの管理</h2>
+            <p>この端末のLocalStorageに保存されています。必要に応じてバックアップできます。</p>
+          </div>
+          <div class="data-actions">
+            <button class="secondary-button" id="export-button" type="button">JSONを書き出す</button>
+            <label class="secondary-button file-button">
+              JSONを読み込む
+              <input id="import-input" type="file" accept="application/json,.json" />
+            </label>
+            <button class="danger-button" id="reset-button" type="button">履歴をリセット</button>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <noscript>このアプリを使用するにはJavaScriptを有効にしてください。</noscript>
+    <script src="words.js"></script>
+    <script src="logic.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
