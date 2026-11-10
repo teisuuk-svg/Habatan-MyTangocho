@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="胸高周囲長から胸高直径と樹木の年間二酸化炭素固定量を計算します．">
+    <meta name="theme-color" content="#0d4f36">
+    <title>樹木の年間CO₂固定量計算</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/katex@0.18.5/dist/katex.min.css"
+      integrity="sha384-2dNi/m6JtSiviznrOIZ5fTiZ5As0In2QwkuXSgoqcQtCNplvJAbt+jveeN+8en73"
+      crossorigin="anonymous"
+    >
+    <link rel="stylesheet" href="style.css">
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/katex@0.18.5/dist/katex.min.js"
+      integrity="sha384-TTF8eEsEKInX2meLzP5V1z/npGYIElXYGksx93f0qBZHu6IL3PdzVB8objytx+TR"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/katex@0.18.5/dist/contrib/auto-render.min.js"
+      integrity="sha384-bjyGPfbij8/NDKJhSGZNP/khQVgtHUE5exjm4Ydllo42FwIgYsdLO2lXGmRBf5Mz"
+      crossorigin="anonymous"
+      onload="renderMathInElement(document.body);"
+    ></script>
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="header-inner">
+        <div class="title-mark" aria-hidden="true">CO₂</div>
+        <div>
+          <p class="eyebrow">TREE CARBON CALCULATOR</p>
+          <h1>樹木の年間CO₂固定量計算</h1>
+          <p class="lead">地上1.3 mで測った幹の周囲長から，胸高直径と年間固定量を求めます．</p>
+        </div>
+      </div>
+    </header>
+
+    <main class="page-shell">
+      <section class="workspace" aria-label="計算ツール">
+        <form id="calculator-form" class="card input-card" novalidate>
+          <div class="section-heading">
+            <span class="step-number" aria-hidden="true">01</span>
+            <div>
+              <p class="section-kicker">測定値</p>
+              <h2>数値を入力</h2>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label for="circumference">
+              胸高周囲長
+              <span class="required-label">必須</span>
+            </label>
+            <p class="field-hint" id="circumference-hint">地上1.3 mの高さで測った幹の周囲長</p>
+            <div class="measurement-row">
+              <input
+                id="circumference"
+                name="circumference"
+                type="text"
+                inputmode="decimal"
+                autocomplete="off"
+                required
+                aria-required="true"
+                aria-describedby="circumference-hint circumference-error"
+                placeholder="例：100"
+              >
+              <label class="sr-only" for="unit">胸高周囲長の単位</label>
+              <select id="unit" name="unit" aria-label="胸高周囲長の単位">
+                <option value="mm">mm</option>
+                <option value="cm" selected>cm</option>
+                <option value="m">m</option>
+              </select>
+            </div>
+            <p class="error-message" id="circumference-error" aria-live="polite"></p>
+          </div>
+
+          <div class="field-group">
+            <label for="tree-count">任意の本数 <span class="optional-label">任意</span></label>
+            <p class="field-hint" id="tree-count-hint">入力すると，その本数分もあわせて計算します（最大10億本）</p>
+            <div class="input-with-suffix">
+              <input
+                id="tree-count"
+                name="treeCount"
+                type="text"
+                inputmode="numeric"
+                autocomplete="off"
+                aria-describedby="tree-count-hint tree-count-error"
+                placeholder="例：37"
+              >
+              <span aria-hidden="true">本</span>
+            </div>
+            <p class="error-message" id="tree-count-error" aria-live="polite"></p>
+          </div>
+
+          <div class="button-row">
+            <button id="calculate-button" class="button button-primary" type="submit">
+              <span class="spinner" aria-hidden="true"></span>
+              <span class="button-label">計算する</span>
+            </button>
+            <button id="reset-button" class="button button-secondary" type="button">入力をリセット</button>
+          </div>
+        </form>
+
+        <section id="results-card" class="card results-card" aria-labelledby="results-title" aria-busy="false">
+          <div class="section-heading">
+            <span class="step-number" aria-hidden="true">02</span>
+            <div>
+              <p class="section-kicker">計算結果</p>
+              <h2 id="results-title">年間CO₂固定量</h2>
+            </div>
+          </div>
+
+          <div id="results-empty" class="results-empty">
+            <div class="empty-icon" aria-hidden="true">π</div>
+            <p>測定値を入力して「計算する」を押すと，ここに結果が表示されます．</p>
+          </div>
+
+          <div id="results-content" class="results-content" hidden aria-live="polite">
+            <div class="primary-result">
+              <span>1本分の年間CO₂固定量</span>
+              <strong id="one-tree-highlight-value">—</strong>
+            </div>
+            <div class="table-scroll" tabindex="0" aria-label="計算結果表．横幅が狭い場合は左右にスクロールできます">
+              <table>
+                <thead>
+                  <tr>
+                    <th scope="col">項目</th>
+                    <th scope="col">結果</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row">胸高直径</th>
+                    <td><span id="diameter-table-value">—</span> <span class="unit-text">cm</span></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">1本分の年間CO₂固定量</th>
+                    <td><span id="one-tree-value">—</span> <span class="unit-text">kg/年</span></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">10本分の年間CO₂固定量</th>
+                    <td><span id="ten-trees-value">—</span> <span class="unit-text">kg/年</span></td>
+                  </tr>
+                  <tr id="custom-count-row" hidden>
+                    <th id="custom-count-label" scope="row">任意本数分の年間CO₂固定量</th>
+                    <td><span id="custom-count-value">—</span> <span class="unit-text">kg/年</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="result-note">表示値は小数第3位に丸めています．計算途中では丸めていません．</p>
+          </div>
+        </section>
+      </section>
+
+      <section class="support-grid" aria-label="計算方法と設定">
+        <article class="card method-card">
+          <div class="compact-heading">
+            <p class="section-kicker">CALCULATION</p>
+            <h2>計算方法</h2>
+          </div>
+          <div class="formula-block">
+            <h3>胸高直径</h3>
+            <div class="formula" aria-label="D イコール C わる パイ">
+              \(D=\frac{C}{\pi}\)
+            </div>
+            <p><i>C</i>：胸高周囲長 [cm]　<i>D</i>：胸高直径 [cm]</p>
+          </div>
+          <div class="formula-block">
+            <h3>年間二酸化炭素固定量</h3>
+            <div class="formula formula-wide" aria-label="Y イコール 0.111 かける，X たす 1.1 の 2.6173乗 ひく X の 2.6173乗">
+              \(Y=0.111\left\{(X+1.1)^{2.6173}-X^{2.6173}\right\}\)
+            </div>
+            <p><i>X</i>：胸高直径 [cm]　<i>Y</i>：年間CO₂固定量 [kg/年]</p>
+          </div>
+        </article>
+
+        <aside class="card settings-card" aria-labelledby="settings-title">
+          <div class="compact-heading">
+            <p class="section-kicker">PREFERENCES</p>
+            <h2 id="settings-title">設定</h2>
+          </div>
+          <label for="default-unit">リセット後の入力単位</label>
+          <p class="field-hint">選んだ単位はこのブラウザに保存されます．</p>
+          <select id="default-unit" name="defaultUnit">
+            <option value="mm">mm</option>
+            <option value="cm" selected>cm</option>
+            <option value="m">m</option>
+          </select>
+          <button id="reset-settings-button" class="text-button" type="button">設定を初期状態（cm）に戻す</button>
+          <p id="settings-status" class="settings-status" aria-live="polite"></p>
+        </aside>
+      </section>
+
+      <noscript>
+        <p class="noscript-message">この計算ツールを使用するにはJavaScriptを有効にしてください．</p>
+      </noscript>
+    </main>
+
+    <footer>
+      <p>測定値に基づく推定結果です．調査・学習用途の目安としてご利用ください．</p>
+    </footer>
+  </body>
+</html>
